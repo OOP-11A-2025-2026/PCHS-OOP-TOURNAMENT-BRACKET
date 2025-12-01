@@ -1,7 +1,7 @@
-import CLI_and_Reading.TournamentCLI;
+import tournament.CLI.CLI;
 
 public class Main {
     public static void main(String[] args) {
-        TournamentCLI.main(args);
+        CLI.main(args);
     }
 }

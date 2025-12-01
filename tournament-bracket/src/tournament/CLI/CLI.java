@@ -1,8 +1,8 @@
 
-package CLI_and_Reading;
+package tournament.CLI;
 import java.util.*;
 
-public class TournamentCLI{
+public class CLI {
     private static Scanner scanner = new Scanner(System.in);
     public static void main(String[] args)
     {
