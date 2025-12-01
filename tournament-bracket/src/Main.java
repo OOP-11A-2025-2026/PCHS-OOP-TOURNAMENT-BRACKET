@@ -1,5 +1,4 @@
-
-package CLI_and_Reading;
+import CLI_and_Reading.TournamentCLI;
 
 public class Main {
     public static void main(String[] args) {
