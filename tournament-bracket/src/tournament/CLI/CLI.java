@@ -1,8 +1,11 @@
 package tournament.CLI;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 import tournament.backend.Match;
 import tournament.backend.Tournament;
-import java.util.*;
 
 public class CLI {
     private static final Scanner scanner = new Scanner(System.in);
@@ -35,9 +38,7 @@ public class CLI {
 
     public static void main(String[] args) {
         printBanner();
-
-        int n = readPlayerCount();
-        List<String> players = readPlayers(n);
+        List<String> players = chooseInputMethod();
 
         Tournament tournament = new Tournament(players);
         tournament.buildBracket();
@@ -54,6 +55,78 @@ public class CLI {
         });
 
         printTournamentComplete(tournament);
+    }
+
+    private static List<String> chooseInputMethod() {
+        while (true) {
+            System.out.println();
+            printSeparator();
+            System.out.println(BOLD + YELLOW + "INPUT METHOD" + RESET);
+            printSeparator();
+            System.out.println("  1) Load participants from CSV file");
+            System.out.println("  2) Enter participants manually");
+            System.out.print(BOLD + "Choose option (1 or 2): " + RESET);
+
+            String line = scanner.nextLine().trim();
+            int choice = -1;
+            try {
+                choice = Integer.parseInt(line);
+            } catch (NumberFormatException e) {
+                System.out.println(RED + "Invalid choice" + RESET);
+                continue;
+            }
+
+            switch (choice) {
+                case 1: {
+                    System.out.print(BOLD + "Enter CSV file path: " + RESET);
+                    String path = scanner.nextLine().trim();
+                    try {
+                        List<String> players = readPlayersFromCsv(path);
+                        System.out.println(GREEN + "Loaded " + players.size() + " teams from file." + RESET);
+                        return players;
+                    } catch (IOException | IllegalArgumentException ex) {
+                        System.out.println(RED + "Failed to load file: " + ex.getMessage() + RESET);
+                        System.out.println(YELLOW + "Please choose input method again." + RESET);
+                        break; // back to menu
+                    }
+                }
+                case 2: {
+                    int n = readPlayerCount();
+                    return readPlayers(n);
+                }
+                default:
+                    System.out.println(RED + "Invalid choice" + RESET);
+            }
+        }
+    }
+
+    private static List<String> readPlayersFromCsv(String filePath) throws IOException {
+        if (filePath == null || filePath.isEmpty()) {
+            throw new IllegalArgumentException("File path empty");
+        }
+        Path p = Path.of(filePath);
+        if (!Files.exists(p)) {
+            throw new IOException("File does not exist: " + filePath);
+        }
+        String content = Files.readString(p);
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        String[] tokens = content.split("[,\\r\\n]+");
+        List<String> players = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (String t : tokens) {
+            String name = t.trim();
+            if (name.isEmpty()) continue;
+            if (seen.contains(name.toLowerCase())) continue;
+            seen.add(name.toLowerCase());
+            players.add(name);
+        }
+        if (players.size() < 2) {
+            throw new IllegalArgumentException("Need at least 2 unique teams in file");
+        }
+        return players;
     }
 
     private static void printBanner() {
